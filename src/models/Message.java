@@ -7,9 +7,19 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
+//検索して複数の結果を得るJPQLというSQL文を使う為、下記アノテーション2つ
+//SELECT m は通常のSELECT *とnameで定義してqueryで内容を記述、IndexServletで使う。
+@NamedQueries({
+    @NamedQuery(
+    name = "getAllMessages",
+    query = "SELECT m FROM Message AS m ORDER BY m.id DESC"
+    )
+})
 @Table(name = "messages")
 public class Message {
     //主キー
