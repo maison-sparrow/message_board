@@ -33,17 +33,21 @@ public class EditServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         EntityManager em = DBUtil.createEntityManager();
 
-        //該当のIDのメッセージ一件のみをDBから取得
+        // 該当のIDのメッセージ1件のみをデータベースから取得
         Message m = em.find(Message.class, Integer.parseInt(request.getParameter("id")));
 
         em.close();
 
-        //メッセージ(messageにmを入れて)をリクエストスコープにセットしてedit.jspを呼び出す,トークンもセット。
+        // メッセージ情報とセッションIDをリクエストスコープに登録
+      //メッセージ(messageにmを入れて)をリクエストスコープにセットしてedit.jspを呼び出す,トークンもセット。
         request.setAttribute("message", m);
         request.setAttribute("_token", request.getSession().getId());
 
-        RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/messages/edit.jsp");
-        rd.forward(request , response);
-    }
+        // メッセージIDをセッションスコープに登録
+      //一回のページ遷移でなく、edit.jsp → UpdateServlet と二回遷移するのでリクエストスコープは×
+        request.getSession().setAttribute("message_id", m.getId());
 
+        RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/messages/edit.jsp");
+        rd.forward(request, response);
+    }
 }
