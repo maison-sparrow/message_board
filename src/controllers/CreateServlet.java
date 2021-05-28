@@ -36,24 +36,25 @@ public class CreateServlet extends HttpServlet {
         String _token = request.getParameter("_token");
         if (_token != null && _token.equals(request.getSession().getId())) {
             EntityManager em = DBUtil.createEntityManager();
-            /**新しいメッセージのインスタンス*/
+            /**新しいMessageクラスのインスタンス*/
             Message m = new Message();
             /**getParameter()名前を引数にすると値を受け取る*/
+            /**new.jspで呼び出してる_form.jspで入力した値をMessageのフィールドに代入*/
             String title = request.getParameter("title");
             m.setTitle(title);
 
             String content = request.getParameter("content");
             m.setContent(content);
 
-            /*System.currentTimeMillis()現在の時間をミリ秒で返す*/
+            /*System.currentTimeMillis()現在の時間をミリ秒で返す、それをMessageのフィールドに代入*/
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             m.setCreated_at(currentTime);
             m.setUpdated_at(currentTime);
 
-            em.getTransaction().begin();
+            em.getTransaction().begin(); /*biginとcommitの間の処理をDBへ実行。commitするまでは実行されない*/
             em.persist(m); /*新規追加*/
             em.getTransaction().commit();
-            em.close();
+            em.close(); /*DBの操作をしたら最後はclose()*/
 
             response.sendRedirect(request.getContextPath() + "/index"); /*受け取ってDBにセーブしたらindexへリダイレクト*/
 

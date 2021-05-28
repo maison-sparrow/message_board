@@ -3,7 +3,7 @@
 <c:import url="../layout/app.jsp">
     <c:param name="content">
         <h2>メッセージ新規作成ページ</h2>
-
+        <!-- formのメソッドはPOSTかGET、POSTだと長いのOK actionは送り先-->
         <form method="POST" action="${pageContext.request.contextPath}/create">
             <c:import url="_form.jsp" />
         </form>

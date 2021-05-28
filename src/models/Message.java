@@ -28,7 +28,7 @@ public class Message {
     @Column(name = "id")
     //主キーを自動採番すること
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer id; //以上の6行でidカラムに対応するフィールドへ自動採番
 
     //Columnでカラム名と一緒に必須入力を設定する。下記は長さ、nullを許可しない
     @Column(name = "title", length = 255, nullable = false)
