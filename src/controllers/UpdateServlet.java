@@ -2,8 +2,10 @@ package controllers;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import models.Message;
 import utils.DBUtil;
+import validators.MessageValidator;
 
 /**
  * Servlet implementation class UpdateServlet
@@ -33,12 +36,12 @@ public class UpdateServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String _token = request.getParameter("_token");
-        if(_token != null && _token.equals(request.getSession().getId())) {
+        if (_token != null && _token.equals(request.getSession().getId())) {
             EntityManager em = DBUtil.createEntityManager();
 
             //セッションスコープからメッセージのIDを取得して
             //該当のIDのメッセージ1件のみをDBから取得
-            Message m = em.find(Message.class, (Integer)(request.getSession().getAttribute("message_id")));
+            Message m = em.find(Message.class, (Integer) (request.getSession().getAttribute("message_id")));
 
             //getParameter()名前を引数にすると値を受け取る
             //new.jspで呼び出してる_form.jspで入力した値をMessageのフィールドに代入
@@ -51,17 +54,32 @@ public class UpdateServlet extends HttpServlet {
 
             //System.currentTimeMillis()現在の時間をミリ秒で返す、それをMessageのフィールドに代入
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            m.setUpdated_at(currentTime);  //更新日時のみ上書き
+            m.setUpdated_at(currentTime); //更新日時のみ上書き
 
-            //DBを更新
-            em.getTransaction().begin();
-            em.getTransaction().commit();
-            em.close();
+            // バリデーションを実行してエラーがあったら編集画面のフォームに戻る
+            List<String> errors = MessageValidator.validate(m);
+            if (errors.size() > 0) {
+                em.close();
 
-            //セッションスコープ上の不要になったデータを削除
-            request.getSession().removeAttribute("message_id");
+                // フォームに初期値を設定、さらにエラーメッセージを送る
+                request.setAttribute("_token", request.getSession().getId());
+                request.setAttribute("message", m);
+                request.setAttribute("errors", errors);
 
-            response.sendRedirect(request.getContextPath() + "/index"); //indexへリダイレクト
+                RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/messages/edit.jsp");
+                rd.forward(request, response);
+            } else {
+                // データベースを更新
+                em.getTransaction().begin();
+                em.getTransaction().commit();
+                request.getSession().setAttribute("flush", "更新が完了しました。");
+                em.close();
+
+                //セッションスコープ上の不要になったデータを削除
+                request.getSession().removeAttribute("message_id");
+
+                response.sendRedirect(request.getContextPath() + "/index"); //indexへリダイレクト
+            }
         }
     }
 }
